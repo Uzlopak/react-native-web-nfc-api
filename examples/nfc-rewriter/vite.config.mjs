@@ -27,6 +27,7 @@ const extensions = [
 
 export default defineConfig({
   root: import.meta.dirname,
+  base: './',
   plugins: [react()],
   define: {
     global: 'globalThis',
