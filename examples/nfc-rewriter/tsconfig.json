@@ -1,0 +1,14 @@
+{
+  "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    "erasableSyntaxOnly": true,
+    "lib": ["ESNext", "DOM"],
+    "jsx": "react-jsx",
+    "paths": {
+      "react-native-web-nfc-api": ["../../src/index"],
+      "react-native-web-nfc-api/testing": ["../../src/testing/index"],
+      "react-native-web-nfc-api/websocket": ["../../src/websocket/index"]
+    }
+  },
+  "include": ["App.tsx", "index.js", "index.web.js", "src"]
+}

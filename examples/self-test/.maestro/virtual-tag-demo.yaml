@@ -1,0 +1,14 @@
+# End-to-end: drive the Virtual Tag demo screen against the in-app
+# InMemoryNfcTransport (no physical NFC hardware needed). Taps a canned
+# TextTag and asserts a `reading` event is logged.
+appId: dev.webnfcapi.example
+---
+- launchApp:
+    clearState: true
+- assertVisible: 'Web NFC API Example|Virtual Tag demo'
+- tapOn:
+    id: 'tab-demo'
+- assertVisible: 'Virtual Tag demo'
+- tapOn:
+    id: 'demo-tap-button'
+- assertVisible: 'reading:.*'

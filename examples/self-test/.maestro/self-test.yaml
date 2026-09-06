@@ -1,0 +1,17 @@
+# End-to-end: run the on-device conformance suite (the same runNfcConformance()
+# that runs under Jest via conformance-suite.test.ts) from the app's Self-Test
+# screen and assert it's all green.
+appId: dev.webnfcapi.example
+---
+- launchApp:
+    clearState: true
+- assertVisible: 'Web NFC API Example|Virtual Tag demo'
+- tapOn:
+    id: 'tab-selftest'
+- assertVisible: 'Self-Test'
+- tapOn:
+    id: 'selftest-run-button'
+- extendedWaitUntil:
+    visible: '.*passed.*'
+    timeout: 15000
+- assertNotVisible: '✗'

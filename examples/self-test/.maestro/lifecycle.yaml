@@ -1,0 +1,23 @@
+# End-to-end: drive the launch/lifecycle screen. Simulates a cold-launch tag
+# tap (asserting the launch banner appears), then toggles background/
+# foreground via the InMemoryNfcTransport's simulateBackground()/
+# simulateForeground() and asserts the app-state label updates accordingly —
+# all without physically backgrounding the app or holding a real tag.
+appId: dev.webnfcapi.example
+---
+- launchApp:
+    clearState: true
+- assertVisible: 'Web NFC API Example|Virtual Tag demo'
+- tapOn:
+    id: 'tab-lifecycle'
+- assertVisible: 'Launch / lifecycle'
+- tapOn:
+    id: 'simulate-launch-button'
+- assertVisible:
+    id: 'launch-banner'
+- tapOn:
+    id: 'simulate-background-button'
+- assertVisible: 'App state: background'
+- tapOn:
+    id: 'simulate-foreground-button'
+- assertVisible: 'App state: foreground'

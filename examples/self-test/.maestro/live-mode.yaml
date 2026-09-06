@@ -1,0 +1,23 @@
+# End-to-end: open the Live mode screen and confirm the default passthrough/
+# native NDEFReader UI renders and reports feature-detection state. This flow
+# does not require physical NFC hardware to validate the screen itself, but
+# actually completing a scan()/write() against real hardware is out of scope
+# for CI (no emulator has an NFC radio).
+appId: dev.webnfcapi.example
+---
+- launchApp:
+    clearState: true
+# Wait for the JS bundle to render before driving the UI.
+- assertVisible: 'Web NFC API Example|Virtual Tag demo'
+- tapOn:
+    id: 'tab-live'
+- assertVisible: 'Live mode'
+- assertVisible:
+    id: 'live-supported'
+- tapOn:
+    id: 'live-scan-button'
+# Real hardware isn't guaranteed in CI — the button being tappable and the
+# reader not crashing is the assertion; a passing/failing scan() outcome
+# either way should still leave the log visible.
+- assertVisible:
+    id: 'live-scan-button'

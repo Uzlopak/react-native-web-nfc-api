@@ -1,0 +1,73 @@
+buildscript {
+  // Allow the library to be built either standalone (using the *_ defaults from
+  // gradle.properties) or as part of a host app (using the host's rootProject.ext).
+  ext.getExtOrDefault = { name ->
+    return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["WebNfcApi_" + name]
+  }
+
+  // When autolinked into a host app, the Android Gradle Plugin is already on the
+  // root project's buildscript classpath, so we must not redeclare it here. Only
+  // pull it in (with an explicit version) when building this library standalone.
+  def agpVersion = rootProject.ext.has("agpVersion") ? rootProject.ext.get("agpVersion") : "8.7.2"
+
+  repositories {
+    google()
+    mavenCentral()
+  }
+
+  dependencies {
+    if (project == rootProject) {
+      classpath "com.android.tools.build:gradle:$agpVersion"
+    }
+  }
+}
+
+apply plugin: "com.android.library"
+apply plugin: "org.jetbrains.kotlin.android"
+// Drives React Native Codegen for the TurboModule spec declared in package.json -> codegenConfig
+apply plugin: "com.facebook.react"
+
+def getExtOrIntegerDefault(name) {
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["WebNfcApi_" + name]).toInteger()
+}
+
+android {
+  namespace = "dev.webnfcapi"
+
+  compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
+
+  defaultConfig {
+    minSdkVersion getExtOrIntegerDefault("minSdkVersion")
+    targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
+  }
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+  }
+
+  kotlinOptions {
+    jvmTarget = "17"
+  }
+
+  testOptions {
+    unitTests {
+      includeAndroidResources = true
+      returnDefaultValues = true
+    }
+  }
+}
+
+repositories {
+  mavenCentral()
+  google()
+}
+
+dependencies {
+  // The version of react-native is set by the host app's React Native Gradle Plugin
+  implementation "com.facebook.react:react-android"
+
+  testImplementation "junit:junit:4.13.2"
+  testImplementation "org.robolectric:robolectric:4.14.1"
+  testImplementation "org.mockito:mockito-core:5.14.2"
+}

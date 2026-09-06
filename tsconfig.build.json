@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "noEmit": false
+  },
+  "exclude": ["examples", "lib", "node_modules", "src/__tests__", "**/*.test.ts"]
+}
