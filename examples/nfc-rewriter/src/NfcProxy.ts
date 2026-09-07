@@ -101,8 +101,25 @@ function handleException(ex: unknown): void {
     return;
   }
   console.warn(ex);
+  if (ex instanceof DOMException && ex.name === 'NotReadableError') {
+    // The radio is physically off (see isEnabled()'s doc comment below) —
+    // scan()/write()/makeReadOnly() rejecting this is the only reliable
+    // signal this library gives for that. Callers that want to update a
+    // "NFC is off" banner from this should use onNotReadable below instead
+    // of matching alertHandler's generic text.
+    notReadableHandler?.();
+    alertHandler('NFC is turned off', 'Enable NFC in system settings and try again.');
+    return;
+  }
   const message = ex instanceof Error ? ex.message : String(ex);
   alertHandler('NFC Error', message);
+}
+
+/** Set by the app to react to a scan()/write() call revealing NFC is off. */
+type NotReadableHandler = () => void;
+let notReadableHandler: NotReadableHandler | null = null;
+function setNotReadableHandler(handler: NotReadableHandler | null) {
+  notReadableHandler = handler;
 }
 
 function toSimpleTag(ev: NDEFReadingEvent): SimpleTag {
@@ -185,9 +202,17 @@ class NfcProxy {
    * isEnabled() to decide whether to render a "NFC is off" banner (see
    * Screens/Home.tsx), the honest, non-probing answer is: we don't know
    * until something real is attempted. `enabled: null` means exactly that —
-   * the Home screen renders no banner rather than guessing, and the very
+   * the Home screen renders no banner from this call alone, and the very
    * first real scan()/write() rejecting NotReadableError is what actually
    * reveals the radio is off, same as the rest of this library's design.
+   *
+   * That real signal is wired up via setNotReadableHandler()/
+   * handleException() above: any scan()/write()/makeReadOnly() call that
+   * rejects NotReadableError invokes the registered handler, which
+   * Screens/Home.tsx uses to flip its banner on immediately instead of
+   * waiting on a nonexistent isEnabled() poll or a live stateChanged
+   * subscription (not exposed on the public NDEFReader API — see
+   * README.md's "Ported from react-native-nfc-rewriter" section).
    */
   async isEnabled(): Promise<boolean | null> {
     if (!NDEFReader.isSupported(this.mode)) {
@@ -341,4 +366,4 @@ function encodeWifiSimple(ssid: string, networkKey: string): Uint8Array<ArrayBuf
 
 const nfcProxy = new NfcProxy();
 export default nfcProxy;
-export {setPromptHandler, setAlertHandler, handleException};
+export {setPromptHandler, setAlertHandler, setNotReadableHandler, handleException};

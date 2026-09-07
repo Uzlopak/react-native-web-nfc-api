@@ -26,7 +26,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import NfcProxy, {type SimpleTag} from '../NfcProxy';
+import NfcProxy, {setNotReadableHandler, type SimpleTag} from '../NfcProxy';
 import {colors} from '../theme';
 
 export default function HomeScreen({
@@ -44,7 +44,10 @@ export default function HomeScreen({
   // the radio is on until a real scan()/write() is attempted" (see
   // NfcProxy.isEnabled()) — treated the same as "assume enabled" below, so
   // the user can try to scan rather than being blocked by a banner that
-  // isn't actually backed by a real hardware check.
+  // isn't actually backed by a real hardware check. The banner does still
+  // turn on reactively: setNotReadableHandler() below fires the moment any
+  // scan()/write()/makeReadOnly() call actually rejects NotReadableError,
+  // which is this library's real signal for "NFC is off" (see NfcProxy.ts).
   const [enabled, setEnabled] = React.useState<boolean | null>(null);
   const showNotEnabledBanner = enabled === false;
   const padding = 40;
@@ -56,14 +59,21 @@ export default function HomeScreen({
       const isEnabled = await NfcProxy.isEnabled();
       if (!cancelled) setEnabled(isEnabled);
     })();
+    setNotReadableHandler(() => {
+      if (!cancelled) setEnabled(false);
+    });
     return () => {
       cancelled = true;
+      setNotReadableHandler(null);
     };
   }, []);
 
   const scanTag = async () => {
     const tag = await NfcProxy.readTag();
-    if (tag) onScannedTag(tag);
+    if (tag) {
+      setEnabled(true);
+      onScannedTag(tag);
+    }
   };
 
   return (

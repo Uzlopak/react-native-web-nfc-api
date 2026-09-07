@@ -145,6 +145,13 @@ The Web NFC spec relies on the browser's Permissions API (`navigator.permissions
 
 Document this divergence in your own app's UX (e.g. don't build a pre-flight "permission granted?" screen backed by `navigator.permissions` — there's nothing to query). See `IMPLEMENTATION_PLAN.md` §2 for the full rationale.
 
+### Detecting "NFC is off" (Android)
+
+There is no standalone `isEnabled()` on the public `NDEFReader` API — the Web NFC spec has no such method either. Instead:
+
+- On Android, the adapter being present but disabled (user turned NFC off in system settings) surfaces as `scan()`/`write()`/`makeReadOnly()` rejecting with `NotReadableError`. This is the only reliable, spec-faithful signal — checking `isEnabled()` ahead of time and then calling `scan()` would still race the user toggling the setting in between the two calls.
+- The library does not poll the adapter state or expose a live "NFC toggled" event on the public API (native does register an `ACTION_ADAPTER_STATE_CHANGED` receiver internally, but it's reserved for internal use and not surfaced to JS) — an app that wants a live "NFC is off" banner should catch `NotReadableError` from its own `scan()`/`write()` calls and update its UI from that, rather than trying to observe the radio state independently. See `examples/nfc-rewriter/src/NfcProxy.ts`'s `setNotReadableHandler()` for a working example of this pattern.
+
 ## Testing & simulation
 
 Everything above `lib/`'s codec layer is testable without hardware via `react-native-web-nfc-api/testing`:
